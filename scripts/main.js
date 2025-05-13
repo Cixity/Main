@@ -103,8 +103,7 @@ const createAmbientMusic = () => {
   
     // Play button click handler
     document.getElementById('playButton').addEventListener('click', () => {
-      // Add game start logic here
-      console.log('Starting game...');
+      window.location.href = 'game/index.html';
     });
   });
   
