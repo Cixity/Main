@@ -1,1 +1,0 @@
-Un joc 2D care la-m facut pentru timpul de practica.
