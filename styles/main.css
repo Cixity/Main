@@ -93,12 +93,34 @@
     transform: translateY(-5px);
   }
   
-  .capy-sprite {
+.capy-sprite {
     width: 50px;
     height: 50px;
     background-size: contain;
     background-repeat: no-repeat;
     animation: bounce 2s infinite ease-in-out;
+  }
+
+  /* Playful font style to match in-game Capybara style */
+.interactive-menu .menu-item span {
+    font-family: 'Press Start 2P', cursive !important;
+    font-size: 14px;
+    line-height: 1.3;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    text-align: center;
+    width: 100%;
+    padding: 4px 0;
+  }
+
+  /* Improve vertical + horizontal centering */
+  .interactive-menu .menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
   }
   
   

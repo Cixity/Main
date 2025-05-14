@@ -102,8 +102,16 @@ const createAmbientMusic = () => {
     });
   
     // Play button click handler
-    document.getElementById('playButton').addEventListener('click', () => {
-      window.location.href = 'game/index.html';
+    document.getElementById('playButton').addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      const width = 1200;
+      const height = 800;
+      const left = (screen.width - width) / 2;
+      const top = (screen.height - height) / 2;
+      
+      window.open('game/index.html', '_blank', 
+        `width=${width},height=${height},top=${top},left=${left},resizable=yes`);
     });
   });
   

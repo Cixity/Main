@@ -1,5 +1,5 @@
 let tileSize = 32 // cit de mare este harta, 32x32
-let gold = 500; // incepem cu 500 de aur
+let gold = 1000; // incepem cu 500 de aur
 let wave = 0;  // incepem cu level-ul 0, adica 1.
 let lives = 200 // cit HP avem in total in joc 
 let waveButton; // buttonul pentru a incepe wave-ul P.S la final tot este funtia
@@ -22,6 +22,8 @@ function preload() {
   bg = loadImage('bg.png')
   ftowerImg = loadImage('tower 2.png')
   atowerImg = loadImage('tower 1.png')
+  btowerImg = loadImage('tower 3.png')
+  rocketImg = loadImage('Rocket 1.png')
   soldier1Img = loadImage('Soldier1.png')
   soldier2Img = loadImage('Soldier2.png')
   soldier3Img = loadImage('Soldier3.png')
@@ -52,16 +54,29 @@ function setup() {
   frostTower.upgradeCost = 50
   frostTower.fireRate = 0.5
 
+  blastTower = new tower.Group()
+  blastTower.color = 'purple'
+  blastTower.img = btowerImg
+  blastTower.type = 'B'
+  blastTower.level = 1
+  blastTower.maxLevel = 3
+  blastTower.damage = 0.7
+  blastTower.upgradeCost = 75
+  blastTower.fireRate = 2.5
 
 
 
+
+  let buttonContainer = createElement('div');
+  buttonContainer.class('game-button-container');
+  
   waveButton = createButton('▶ Start Wave');
-  waveButton.position(20, 120);
+  waveButton.parent(buttonContainer);
   waveButton.mousePressed(startWave);
   waveButton.class('game-button');
 
   pauseButton = createButton('⏸️ Pause');
-  pauseButton.position(20, 160);
+  pauseButton.parent(buttonContainer);
   pauseButton.mousePressed(togglePause);
   pauseButton.class('game-button');
 
@@ -177,6 +192,7 @@ function setup() {
   spawnIntervalId = setInterval(spawn,1000)
   towerShootIntervalId = setInterval(towerShoot,500)
   frostShootIntervalId = setInterval(frostShoot,2000)
+  blastShootIntervalId = setInterval(blastShoot,1900)
 
 }
 function spawn(){
@@ -241,6 +257,9 @@ function chooseTower(){
   }
   else if(kb.presses('f')){
     selectedTower = 'F'
+  }
+  else if(kb.presses('b')){
+    selectedTower = 'B'
   }
 }
 function draw() {
@@ -311,6 +330,8 @@ function killEnemies(){
             }
             break;
           case 'B':
+            e.health -= p.towerDamage;
+            p.remove();
             break;
           default:
             e.health -= p.towerDamage || 0.2;
@@ -344,6 +365,28 @@ function towerShoot(){
     }
   }
 }
+function blastShoot(){
+  if (!isPaused) {
+    for(t of tower){
+      if(t.type == 'B'){
+        let target = closest(t);
+        if (target) {
+          t.rotation = t.angleTo(target) + 90;
+          let p = new projectile.Sprite(t.x,t.y)
+          p.img = rocketImg
+          p.scale = 0.3
+          p.radius = 0.3
+          p.speed = 0.015
+          p.type = t.type
+          p.towerDamage = t.damage
+          p.direction = t.angleTo(target)
+          p.rotation = p.direction + 90
+        }
+      }
+    }
+  }
+}
+
 function frostShoot(){
   if (!isPaused) { // inca o verificarea pentru pauza
     for(t of tower){
@@ -395,6 +438,10 @@ if(cursor.overlapping(placeable) &&  mouse.released() && !cursor.overlapping(tow
     case 'A':
       t = new tower.Sprite(cursor.x,cursor.y)
       gold-=50;
+      break;
+    case 'B':
+      t = new blastTower.Sprite(cursor.x,cursor.y)
+      gold-=75;
       break;
   }
 }
@@ -474,13 +521,53 @@ function enemyMove(){
   }
 }
 function drawHUD(){
-
+  // Main HUD
   fill(40, 44, 52, 220)
   stroke(76, 175, 80)
   strokeWeight(2)
   rect(width/2 - 170, 20, 340, 90, 10)
+  
+  // Admin Panel UI
+  rect(width - 170, height - 220, 150, 80, 10)
+  
+  // Tower Key UI
+  rect(width - 170, height - 120, 150, 100, 10)
+  
+  // Admin Panel Title
+  fill(76, 175, 80)
+  rect(width - 170, height - 220, 150, 30, 10, 10, 0, 0)
+  
+  fill(255)
+  textSize(14)
+  textAlign(CENTER)
+  text("ADMIN PANEL", width - 95, height - 202)
+  
+  // Admin Buttons
+  fill(255, 215, 0)
+  rect(width - 160, height - 180, 60, 25, 5)
+  fill(255, 0, 0)
+  rect(width - 90, height - 180, 60, 25, 5)
+  
+  fill(0)
+  textSize(10)
+  text("+100 GOLD", width - 130, height - 165)
+  text("+100 HP", width - 60, height - 165)
   strokeWeight(1)
   noStroke()
+  
+  // Tower Key Title
+  fill(76, 175, 80)
+  rect(width - 170, height - 120, 150, 30, 10, 10, 0, 0)
+  
+  fill(255)
+  textSize(14)
+  textAlign(CENTER)
+  text("TOWER KEYS", width - 95, height - 102)
+  
+  textAlign(LEFT)
+  text("A = Tower 1", width - 160, height - 75)
+  text("F = Tower 2", width - 160, height - 50)
+  text("B = Tower 3", width - 160, height - 25)
   
   // titlu
   fill(76, 175, 80)
@@ -569,6 +656,9 @@ function upgradeTower(towerSprite) {
     } else if (towerSprite.type == 'F') {
       towerSprite.damage += 0.05;
       towerSprite.fireRate *= 0.9; 
+    } else if (towerSprite.type == 'B') {
+      towerSprite.damage += 0.15;
+      towerSprite.fireRate *= 0.85;
     }
 
     
@@ -578,61 +668,82 @@ function upgradeTower(towerSprite) {
 
 function drawUpgradeUI() {
   if (selectedTowerSprite) {
+    // Fixed position on the right side of the screen
+    let bx = width - 120;
+    let by = 150;
     
-    let bx = selectedTowerSprite.x * tileSize + 20;
-    let by = selectedTowerSprite.y * tileSize - 20;
+    // Draw tower info box
+    fill(40, 44, 52, 220);
+    stroke(76, 175, 80);
+    strokeWeight(2);
+    rect(bx - 10, by - 10, 110, 120, 10);
     
+    // Draw upgrade button
     fill(255, 215, 0); 
     stroke(0);
     strokeWeight(1);
-    rect(bx, by, 70, 30, 5); // colturi rotunjite
+    rect(bx, by, 90, 30, 5);
     
     fill(0);
     textSize(12);
     textAlign(CENTER, CENTER);
-    text("Upgrade\n" + selectedTowerSprite.upgradeCost + "G", bx + 35, by + 15);
+    text("Upgrade\n" + selectedTowerSprite.upgradeCost + "G", bx + 45, by + 15);
     
-    
+    // Draw stats
     textAlign(LEFT);
     fill(255);
-    stroke(0);
-    strokeWeight(1);
-    rect(bx - 10, by + 35, 90, 60, 5);
-    
-    noStroke();
-    fill(0);
-    textSize(10);
-    text("Level: " + selectedTowerSprite.level + "/" + selectedTowerSprite.maxLevel, bx, by + 45);
-    text("Damage: " + selectedTowerSprite.damage.toFixed(1), bx, by + 60);
-    text("Fire Rate: " + selectedTowerSprite.fireRate.toFixed(1), bx, by + 75);
+    textSize(12);
+    text("Selected Tower:", bx, by + 45);
+    text("Level: " + selectedTowerSprite.level + "/" + selectedTowerSprite.maxLevel, bx, by + 65);
+    text("Damage: " + selectedTowerSprite.damage.toFixed(1), bx, by + 85);
+    text("Fire Rate: " + selectedTowerSprite.fireRate.toFixed(1), bx, by + 105);
     
     textAlign(LEFT, BASELINE); 
   }
 }
 
 function mousePressed() {
+  // Admin panel buttons
+  if (mouseY > height - 180 && mouseY < height - 155) {
+    // Gold button
+    if (mouseX > width - 160 && mouseX < width - 100) {
+      gold += 100;
+      return;
+    }
+    // Health button
+    if (mouseX > width - 90 && mouseX < width - 30) {
+      lives += 100;
+      return;
+    }
+  }
+
+  let bx = width - 120;
+  let by = 150;
   
+  // Check if clicking upgrade button when a tower is selected
+  if (selectedTowerSprite) {
+    if (mouseX > bx && mouseX < bx + 90 && 
+        mouseY > by && mouseY < by + 30) {
+      upgradeTower(selectedTowerSprite);
+      return;
+    }
+    
+    // If clicking outside the upgrade menu area, deselect tower
+    if (!(mouseX > bx - 10 && mouseX < bx + 100 && 
+          mouseY > by - 10 && mouseY < by + 110)) {
+      selectedTowerSprite = null;
+      return;
+    }
+    return; // Prevent selecting another tower while one is selected
+  }
+  
+  // Only allow selecting a tower if none is currently selected
   for (let t of tower) {
     if (dist(mouseX, mouseY, t.x * tileSize, t.y * tileSize) < tileSize) {
       selectedTowerSprite = t;
       return;
     }
   }
-  
-  
-  if (selectedTowerSprite) {
-    let bx = selectedTowerSprite.x * tileSize + 20;
-    let by = selectedTowerSprite.y * tileSize - 20;
-    
-    if (mouseX > bx && mouseX < bx + 70 && 
-        mouseY > by && mouseY < by + 30) {
-      upgradeTower(selectedTowerSprite);
-      return;
-    }
-  }
-  
-  // deselect la turn
-  selectedTowerSprite = null;
 }
 
 function togglePause() {
